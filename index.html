@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        h1, h2 {
+            text-align: center;
+        }
+        table {
+            width: 50%;
+            text-align: center;
+            margin-bottom: 200px;
+        }
+        select {
+            width: 10%;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Products</h1>
+    <table>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Unit Price</th>
+          <th>Stock</th>
+          <th>Delete</th>
+        </tr>
+    </table>
+
+    <hr>
+
+    <h2>Select</h2>
+    <select id="numbers">
+        <option value="100">100</option>
+        <option value="200">200</option>
+        <option value="300">300</option>
+        <option value="400">400</option>
+        <option value="500">500</option>
+    </select>
+
+    <table id="selected">
+    </table>
+</body>
+<script>
+    axios.get('https://northwind.vercel.app/api/products').then( response => {
+        var products = response.data;
+
+        products.forEach(element => {
+            var selectElement = document.querySelector("#numbers");
+            selectElement.addEventListener("change", changeEvent);
+
+            var trElement = document.createElement('tr');
+            trElement.id = element.id;
+            console.log(typeof trElement.id)
+
+            var tdElement1 = document.createElement('td');
+            var tdElement2 = document.createElement('td');
+            var tdElement3 = document.createElement('td');
+            var tdElement4 = document.createElement('td');
+
+            tdElement1.innerHTML = element.id;
+            tdElement2.innerHTML = element.name;
+            tdElement3.innerHTML = element.unitPrice;
+            tdElement4.innerHTML = element.unitsInStock;
+
+            document.querySelector('table').appendChild(trElement);
+            trElement.appendChild(tdElement1);
+            trElement.appendChild(tdElement2);
+            trElement.appendChild(tdElement3);
+            trElement.appendChild(tdElement4);
+            
+            var btnElement = document.createElement('button');
+            btnElement.innerHTML="Delete";
+            btnElement.addEventListener("click", clickEvent);
+            trElement.appendChild(btnElement);
+        });
+    });
+
+    function clickEvent () {
+        this.parentNode.remove();
+        var postIdToDelete = Number(this.parentNode.id);
+
+        axios.delete(`https://northwind.vercel.app/api/products/${postIdToDelete}`).then(
+            response => {
+                console.log(`Deleted post with ID ${postIdToDelete}`);
+            }
+        ).catch(
+            error => {
+                console.error(error);
+            }
+        ); 
+    }
+
+    function changeEvent () {
+        
+        axios.get('https://northwind.vercel.app/api/products').then( response => {
+            var products = response.data;
+
+            var h2 = document.querySelector("h2");
+            var selectedTable = document.querySelector("#selected");
+            selectedTable.innerHTML='';
+            
+            var maxPrice = Number(this.value);
+            var minPrice = maxPrice-100;
+
+            var filteredProducts = products.filter(
+                product => 
+                    Number(product.unitPrice) >= minPrice && 
+                    Number(product.unitPrice) <= maxPrice
+            );
+            
+            if (filteredProducts.length > 0) {
+                h2.innerHTML = `Information about products with price values between ${minPrice} and ${maxPrice}`;
+                
+                
+
+                var tableRow1 = document.createElement('tr');
+                var th1 = document.createElement('th');
+                var th2 = document.createElement('th');
+                var th3 = document.createElement('th');
+                var th4 = document.createElement('th');
+
+                th1.innerHTML = "ID";
+                th2.innerHTML = "Name";
+                th3.innerHTML = "Unit Price";
+                th4.innerHTML = "Stock";
+
+                document.body.appendChild(selectedTable);
+                selectedTable.appendChild(tableRow1);
+                tableRow1.appendChild(th1);
+                tableRow1.appendChild(th2);
+                tableRow1.appendChild(th3);
+                tableRow1.appendChild(th4);
+
+                filteredProducts.forEach(element => {
+                    var tableRow = document.createElement('tr');
+                    selectedTable.appendChild(tableRow);
+
+                    var tableCell1 = document.createElement('td');
+                    var tableCell2 = document.createElement('td');
+                    var tableCell3 = document.createElement('td');
+                    var tableCell4 = document.createElement('td');
+
+                    tableCell1.innerHTML = element.id;
+                    tableCell2.innerHTML = element.name;
+                    tableCell3.innerHTML = element.unitPrice;
+                    tableCell4.innerHTML = element.unitsInStock;
+
+                    tableRow.appendChild(tableCell1);
+                    tableRow.appendChild(tableCell2);
+                    tableRow.appendChild(tableCell3);
+                    tableRow.appendChild(tableCell4);
+                });
+            }else{
+                selectedTable.innerHTML='';
+                h2.innerHTML = `There are no products with price values between ${minPrice} and ${maxPrice}`;
+            }
+        });
+    }
+</script>
+</html>
